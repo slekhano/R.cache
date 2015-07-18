@@ -67,17 +67,18 @@ setMethodS3("saveCache", "default", function(object, key=NULL, sources=NULL, suf
     pathname <- generateCache(key=key, suffix=suffix, dirs=dirs);
   }
 
+  tempPathName <- tempfile(pattern="cache", tmpdir=getCachePath(...));
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Save to file connection
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   if (compress) {
     pathname <- sprintf("%s.gz", pathname);
-    fh <- gzfile(pathname, open="wb");
+    fh <- gzfile(tempPathName, open="wb");
   } else {
-    fh <- file(pathname, open="wb");
+    fh <- file(tempPathName, open="wb");
   }
-  on.exit(close(fh));
+  #on.exit(close(fh));
 
   # Save 'identifier'
   identifier <- "Rcache v0.1.7 (R package R.cache by Henrik Bengtsson)";
@@ -109,6 +110,9 @@ setMethodS3("saveCache", "default", function(object, key=NULL, sources=NULL, suf
 
   # Save 'object'
   base_save(file=fh, object, compress=compress, ...);
+
+  close(fh);
+  file.rename(from=tempPathName, to=pathname);
 
   invisible(pathname);
 })
